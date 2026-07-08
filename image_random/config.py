@@ -56,6 +56,7 @@ class Config:
     height: int = 1088  # must be a multiple of 16
     steps: int = 28
     guidance: float = 3.5
+    quantize: bool = True  # FP8 weights; required to fit 24GB VRAM at full speed
     outputs_dir: str = "outputs"
 
     ollama_host: str = field(default="", repr=False)

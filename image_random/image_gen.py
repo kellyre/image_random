@@ -9,15 +9,67 @@ from pathlib import Path
 from .config import Config
 
 
+def _resolve_model_path(model_id: str) -> str:
+    """Return the local snapshot path if the model is fully cached.
+
+    Loading from a local path skips all Hub API calls, which both avoids
+    needing a valid HF token for cached models and works around diffusers
+    calling the Hub for sharded checkpoints even when they are cached.
+    """
+    try:
+        from huggingface_hub import snapshot_download
+
+        return snapshot_download(model_id, local_files_only=True)
+    except Exception:
+        return model_id  # not cached; let from_pretrained download it
+
+
 def load_pipeline(cfg: Config):
     import torch
     from diffusers import FluxPipeline
 
-    print(f"Loading {cfg.image_model} (bf16, CPU offload)...")
-    pipe = FluxPipeline.from_pretrained(cfg.image_model, torch_dtype=torch.bfloat16)
-    # The bf16 transformer alone is ~24GB; offloading keeps each component on
-    # the GPU only while it runs, so the whole pipeline fits in 24GB VRAM.
-    pipe.enable_model_cpu_offload()
+    model_path = _resolve_model_path(cfg.image_model)
+    print(f"Loading {cfg.image_model} from {model_path}...")
+    if cfg.quantize:
+        # The bf16 transformer alone is ~24GB, which overflows a 24GB card and
+        # makes the Windows driver spill into shared memory (~15x slower).
+        # NF4 weights bring the whole pipeline to ~10GB so it fits on-GPU.
+        from diffusers import BitsAndBytesConfig as DiffusersBnbConfig
+        from diffusers import FluxTransformer2DModel
+        from transformers import BitsAndBytesConfig as TransformersBnbConfig
+        from transformers import T5EncoderModel
+
+        transformer = FluxTransformer2DModel.from_pretrained(
+            model_path,
+            subfolder="transformer",
+            quantization_config=DiffusersBnbConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            ),
+            torch_dtype=torch.bfloat16,
+        )
+        text_encoder_2 = T5EncoderModel.from_pretrained(
+            model_path,
+            subfolder="text_encoder_2",
+            quantization_config=TransformersBnbConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            ),
+            torch_dtype=torch.bfloat16,
+        )
+        pipe = FluxPipeline.from_pretrained(
+            model_path,
+            transformer=transformer,
+            text_encoder_2=text_encoder_2,
+            torch_dtype=torch.bfloat16,
+        )
+        pipe.enable_model_cpu_offload()
+    else:
+        pipe = FluxPipeline.from_pretrained(model_path, torch_dtype=torch.bfloat16)
+        pipe.enable_model_cpu_offload()
+
     pipe.vae.enable_tiling()
     return pipe
 

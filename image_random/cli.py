@@ -37,6 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--steps", type=int, default=defaults.steps)
         p.add_argument("--guidance", type=float, default=defaults.guidance)
         p.add_argument("--base-seed", type=int, default=None, help="seed for image seeds")
+        p.add_argument(
+            "--no-quantize",
+            action="store_true",
+            help="run the transformer in bf16 (needs >24GB VRAM to be fast)",
+        )
 
     return parser
 
@@ -52,6 +57,7 @@ def main(argv: list[str] | None = None) -> None:
             raise SystemExit("--width and --height must be multiples of 16")
         cfg.width, cfg.height = args.width, args.height
         cfg.steps, cfg.guidance = args.steps, args.guidance
+        cfg.quantize = not args.no_quantize
 
     from .prompt_gen import generate_prompts, load_prompts
 

@@ -1,7 +1,10 @@
+# Install torch matching your driver's CUDA version, e.g. for CUDA 12.8:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu128
 torch>=2.4
 diffusers>=0.31
 transformers>=4.44
 accelerate>=0.33
+bitsandbytes
 sentencepiece
 protobuf
 pillow
