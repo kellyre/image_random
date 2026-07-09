@@ -38,6 +38,13 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--guidance", type=float, default=defaults.guidance)
         p.add_argument("--base-seed", type=int, default=None, help="seed for image seeds")
         p.add_argument(
+            "--max-tokens",
+            type=int,
+            default=defaults.max_prompt_tokens,
+            help="T5 token budget for prompts; >512 is beyond FLUX's training "
+            "and may add artifacts (512 = exact trained behavior)",
+        )
+        p.add_argument(
             "--no-quantize",
             action="store_true",
             help="run the transformer in bf16 (needs >24GB VRAM to be fast)",
@@ -58,6 +65,7 @@ def main(argv: list[str] | None = None) -> None:
         cfg.width, cfg.height = args.width, args.height
         cfg.steps, cfg.guidance = args.steps, args.guidance
         cfg.quantize = not args.no_quantize
+        cfg.max_prompt_tokens = args.max_tokens
 
     from .prompt_gen import generate_prompts, load_prompts
 

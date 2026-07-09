@@ -7,11 +7,15 @@ FLUX.1-dev.
 ## How it works
 
 1. **Prompt generation** — the program calls Ollama (default model
-   `qwen3.6`) in small batches. Each batch is seeded with random topics from
-   a 50-topic pool and a random style direction, so 50 prompts span deep-sea
-   ecosystems, jazz clubs, alien deserts, macro frost crystals, etc. Prompts
-   are 60–120 word single-paragraph scene descriptions, saved to
-   `prompts/prompts_<timestamp>.jsonl`.
+   `qwen3.6`) in small batches. Each batch is seeded with random broad
+   domains (30 of them) and a photographic style; the LLM invents a fresh,
+   specific concept per domain. Every concept ever generated (read from all
+   files in `prompts/`) is fed back as an avoid-list, so new prompts don't
+   repeat earlier themes — keep the `prompts/` folder to keep that memory.
+   Prompts are 200–350 word single-paragraph descriptions of complex scenes
+   (multiple simultaneous actions, distinct foreground/midground/background)
+   that favor fantastical premises rendered with physically real textures.
+   Saved to `prompts/prompts_<timestamp>.jsonl`.
 2. **VRAM handoff** — after prompting, Ollama is asked to unload its model
    (`keep_alive: 0`) so FLUX gets the whole GPU.
 3. **Image generation** — FLUX.1-dev, NF4-quantized with bitsandbytes so the
@@ -55,7 +59,9 @@ venv/bin/python run.py all --count 3 --width 1344 --height 768 --steps 20
 
 Useful flags: `--width/--height` (multiples of 16), `--steps` (default 28),
 `--guidance` (default 3.5), `--limit N` (render only the first N prompts),
-`--seed` / `--base-seed` for reproducibility.
+`--seed` / `--base-seed` for reproducibility, `--max-tokens` (T5 budget,
+default 1024 — FLUX was trained at 512, so longer prompts are fully read
+but may introduce artifacts; set 512 for exact trained behavior).
 
 Environment overrides: `IR_OLLAMA_MODEL`, `IR_IMAGE_MODEL`, `OLLAMA_HOST`.
 

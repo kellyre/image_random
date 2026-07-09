@@ -56,7 +56,11 @@ class Config:
     height: int = 1088  # must be a multiple of 16
     steps: int = 28
     guidance: float = 3.5
-    quantize: bool = True  # FP8 weights; required to fit 24GB VRAM at full speed
+    quantize: bool = True  # NF4 weights; required to fit 24GB VRAM at full speed
+    # T5 token budget. FLUX was trained at 512; longer sequences work (T5 uses
+    # relative position embeddings) but are out-of-distribution for the
+    # transformer and may introduce artifacts. Values <= 512 are exact.
+    max_prompt_tokens: int = 1024
     outputs_dir: str = "outputs"
 
     ollama_host: str = field(default="", repr=False)

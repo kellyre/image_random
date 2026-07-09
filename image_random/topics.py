@@ -1,87 +1,67 @@
-"""Topic and style seed pools used to force diversity across prompt batches.
+"""Seed pools used to force diversity across prompt batches.
 
-Each Ollama call gets a random sample of topics + a style direction, so a run
-of 50 prompts spans many unrelated subjects instead of drifting into one theme.
+Instead of a fixed topic list (which repeats across runs), each Ollama call
+gets a random sample of broad DOMAINS and must invent a fresh, specific scene
+concept in each one, steering clear of every concept already generated.
+Styles are all photographic/physically-based: subjects may be fantastical,
+but surfaces and materials should read as real.
 """
 
 import random
 
-TOPICS = [
-    "a bioluminescent deep-sea ecosystem",
-    "a bustling night market in Southeast Asia",
-    "an abandoned Soviet-era space facility",
-    "a macro view of frost crystals forming",
-    "a solarpunk city integrated with forests",
-    "a medieval blacksmith's workshop at dawn",
-    "an alien desert with impossible geology",
-    "a 1920s jazz club interior",
-    "a colossal ancient tree housing a village",
-    "a storm chaser's view of a supercell",
-    "an art nouveau greenhouse conservatory",
-    "a cyberpunk street food vendor",
-    "a whale migration seen from above",
-    "a Moroccan riad courtyard in afternoon light",
-    "an ice cave lit by aurora borealis",
-    "a retro-futurist 1960s vision of Mars",
-    "a hidden Japanese mountain shrine in fog",
-    "a clockwork automaton orchestra",
-    "a coral reef reclaiming a sunken airliner",
-    "a Venetian carnival at midnight",
-    "a prairie thunderstorm over wheat fields",
-    "an Afrofuturist royal palace",
-    "a lighthouse keeper's room during a gale",
-    "a floating sky archipelago with waterfalls",
-    "a paleontology dig site at golden hour",
-    "an Antarctic research station under stars",
-    "a baroque library with impossible architecture",
-    "a street in Havana with vintage cars after rain",
-    "a nomad caravan crossing singing dunes",
-    "a volcanic eruption seen from a safe ridge",
-    "a Scandinavian fishing village in winter",
-    "an overgrown post-human Manhattan",
-    "a hummingbird frozen mid-flight in a garden",
-    "a Mughal palace reflecting pool at dusk",
-    "a steampunk airship docking tower",
-    "a mycelium network glowing underground",
-    "a Formula 1 pit stop in dramatic lighting",
-    "an Andean village during a festival",
-    "a glassblower shaping molten glass",
-    "a tide pool teeming with life at sunset",
-    "a monastery carved into a cliff face",
-    "a quantum computer laboratory",
-    "a Mississippi riverboat in the 1880s",
-    "an origami world where everything is folded paper",
-    "a leopard resting in a baobab tree",
-    "a Grand Central-style train station on another planet",
-    "a chocolatier's kitchen mid-creation",
-    "a Viking longship in a fjord under midnight sun",
-    "a satellite's view of city lights and lightning",
-    "a wildflower superbloom in a desert valley",
+DOMAINS = [
+    "deep ocean or underwater worlds",
+    "mythology or folklore brought to life",
+    "megafauna, creatures, or impossible beasts",
+    "ancient ruins or lost civilizations",
+    "cosmic, astronomical, or planetary scenes",
+    "dense cities, markets, or street life",
+    "wilderness, weather, or natural forces",
+    "flying machines, airships, or impossible vehicles",
+    "enchanted forests, flora, or fungal worlds",
+    "workshops, laboratories, or places of craft",
+    "festivals, rituals, or gatherings",
+    "architecture that defies physics",
+    "the very small: macro, insects, mechanisms",
+    "deserts, ice fields, or extreme landscapes",
+    "islands, coasts, or floating landmasses",
+    "underground realms: caves, mines, buried cities",
+    "libraries, archives, or repositories of knowledge",
+    "harbors, shipwrecks, or seafaring life",
+    "mountains, monasteries, or high places",
+    "dreamlike or surreal juxtapositions",
+    "post-human or reclaimed-by-nature places",
+    "kitchens, feasts, or food as landscape",
+    "clockwork, automata, or living machines",
+    "portals, thresholds, or between-worlds",
+    "trains, stations, or great journeys",
+    "storms of unusual things",
+    "gardens: overgrown, celestial, or impossible",
+    "nomads, caravans, or migrations",
+    "light phenomena: bioluminescence, auroras, refraction",
+    "colossal statues, relics, or forgotten monuments",
 ]
 
+# All photographic / physically-based: fantastical subjects, real surfaces.
 STYLES = [
     "ultra-detailed photorealistic photography, shallow depth of field",
     "cinematic film still, anamorphic lens, moody color grading",
-    "dramatic chiaroscuro oil painting",
-    "vibrant studio ghibli inspired animation still",
-    "national geographic wildlife photography",
-    "architectural digest editorial photograph",
-    "impressionist painting with bold brushwork",
+    "national geographic expedition photography",
     "long-exposure night photography",
-    "hyperrealistic 3D render, octane, volumetric lighting",
-    "vintage kodachrome slide film photograph",
-    "detailed matte painting for a fantasy film",
     "aerial drone photography, golden hour",
-    "watercolor and ink illustration",
-    "high-fashion editorial photography, dramatic lighting",
-    "documentary street photography, decisive moment",
-    "art deco poster illustration",
+    "large-format landscape photography, razor sharp front to back",
+    "documentary photography, natural light, decisive moment",
+    "vintage kodachrome slide film photograph",
+    "macro photography with visible surface texture and dust",
+    "overcast soft-light photography, muted natural palette",
+    "high-speed photography freezing motion mid-action",
+    "twilight blue-hour photography with practical lights",
 ]
 
 
-def sample_topics(n: int, rng: random.Random | None = None) -> list[str]:
+def sample_domains(n: int, rng: random.Random | None = None) -> list[str]:
     rng = rng or random
-    return rng.sample(TOPICS, min(n, len(TOPICS)))
+    return rng.sample(DOMAINS, min(n, len(DOMAINS)))
 
 
 def sample_style(rng: random.Random | None = None) -> str:
